@@ -36,10 +36,6 @@ class Strategy(AutoTrader):
         attributes['current_coin'] = str(current_coin).replace("<", "").replace(">", "")
         attributes['wallet'] = {}
 
-        ratio_dict = self._get_ratios(current_coin, current_coin_price, all_tickers)
-        if ratio_dict:
-            next_best_pair = max(ratio_dict, key=ratio_dict.get)
-
         for asset in self.manager.binance_client.get_account()["balances"]:
           if float(asset['free']) > 0:
             if asset['asset'] not in ['BUSD', 'USDT']:
@@ -56,19 +52,9 @@ class Strategy(AutoTrader):
         with self.db.db_session() as session:
           trade = session.query(Trade).order_by(Trade.datetime.desc()).limit(1).one().info()
           if trade:
-            transaction = {}
-            if trade['selling']:
-              transaction['transaction'] = 'SELL'
-            else:
-              transaction['transaction'] = 'BUY'
-
-            transaction['coin'] = trade['alt_coin']['symbol']
-            transaction['amount'] = trade['alt_trade_amount']
-            transaction['state'] = trade['state']
-            transaction['datetime'] = datetime.strptime(trade['datetime'], "%Y-%m-%dT%H:%M:%S.%f").replace(tzinfo=timezone.utc).astimezone(tz=None).strftime("%d/%m/%Y %H:%M:%S")
+            attributes['last_transaction_attempt'] = datetime.strptime(trade['datetime'], "%Y-%m-%dT%H:%M:%S.%f").replace(tzinfo=timezone.utc).astimezone(tz=None).strftime("%d/%m/%Y %H:%M:%S")
     
-        attributes['last_transaction'] = transaction
-        attributes['last_update'] = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+        attributes['last_sensor_update'] = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
 
         # Update HA Sensor
         data = {'state': round(total_balance_usdt, 2), 'attributes': attributes}
