@@ -7,6 +7,7 @@
 ## About
 
 Home Assistant Add-on to run an instance of [binance-trade-bot](https://github.com/edeng23/binance-trade-bot)
+The "hassio_default_strategy.py" lets the bot create a sensor in hassio with some information regarding the binance assets
 
 ## New Installation
 
@@ -30,10 +31,8 @@ Home Assistant Add-on to run an instance of [binance-trade-bot](https://github.c
 You can override any file of the bot by putting an edited version of the file in the _override_ folder, respecting the bot's folder structure.
   i.e. to override "/app/binance_trade_bot/binance_api_manager.py", create a file in "/_override_/binance_trade_bot/binance_api_manager.py", make the necessary changes to that file and restart the add-on
   
-
-
-
-
+## For information regarding the setup and configuration of the bot, reffer to the bot's [git page](https://github.com/edeng23/binance-trade-bot)
+## This Add-on is provided as-is and I am not responsible for any problems you may end up with in your Hassio or Binance setup.
 
 [aarch64-shield]: https://img.shields.io/badge/aarch64-yes-green.svg
 [amd64-shield]: https://img.shields.io/badge/amd64-yes-green.svg
