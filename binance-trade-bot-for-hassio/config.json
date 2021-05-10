@@ -1,0 +1,42 @@
+{
+  "name": "binance-trade-bot-for-hassio",
+  "version": "0.1.0",
+  "slug": "binance-trade-bot-for-hassio",
+  "description": "Automated cryptocurrency trading bot",
+  "url": "https://github.com/miouzikal/hassio-addons/tree/master/binance-trade-bot-for-hassio",
+  "arch": ["armhf", "armv7", "aarch64", "amd64", "i386"],
+  "startup": "application",
+  "hassio_api": true,
+  "homeassistant_api": true,
+  "boot": "auto",
+  "options": {
+    "CURRENT_COIN_SYMBOL": "",
+    "BRIDGE_SYMBOL": "USDT",
+    "API_KEY": "",
+    "API_SECRET_KEY": "",
+    "SCOUT_MULTIPLIER": 5,
+    "SCOUT_SLEEP_TIME": 5,
+    "HOUR_TO_KEEP_SCOUT_HISTORY": 1,
+    "TLD": "com",
+    "STRATEGY": "hassio_default",
+    "BUY_TIMEOUT": 0,
+    "SELL_TIMEOUT": 0,
+    "SUPPORTED_COIN_LIST": ["ADA", "XMR", "VET", "HOT", "BAT", "ATOM", "ETH", "LINK", "UNI", "ONE", "EOS", "DOT", "MANA", "ROSE", "SOL", "ENJ"]
+  },
+  "schema": {
+    "CURRENT_COIN_SYMBOL": "str?",
+    "BRIDGE_SYMBOL": "str",
+    "API_KEY": "str",
+    "API_SECRET_KEY": "str",
+    "SCOUT_MULTIPLIER": "int",
+    "SCOUT_SLEEP_TIME": "int",
+    "HOUR_TO_KEEP_SCOUT_HISTORY": "int",
+    "TLD": "str",
+    "STRATEGY": "str",
+    "BUY_TIMEOUT": "int",
+    "SELL_TIMEOUT": "int",
+    "SUPPORTED_COIN_LIST": ["str"],
+    "log_level": "list(debug|info|warning|error)?"
+  },
+  "map": ["addons:rw"]
+}
