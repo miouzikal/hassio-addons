@@ -6,7 +6,7 @@
 
 ## About
 
-Home Assistant Add-on to run an instance of [binance-trade-bot](https://github.com/edeng23/binance-trade-bot)
+Home Assistant Add-on to run an instance of [binance-trade-bot](https://github.com/edeng23/binance-trade-bot)  
 The "hassio_default_strategy.py" lets the bot create a sensor in hassio with some information regarding the binance assets
 
 ## New Installation
