@@ -40,7 +40,11 @@ class Strategy(AutoTrader):
           if float(asset['free']) > 0:
             if asset['asset'] not in ['BUSD', 'USDT']:
               current_price = all_tickers.get_price(asset['asset'] + self.config.BRIDGE_SYMBOL)
-              asset_value = float(asset['free']) * float(current_price)
+              if isinstance(current_price, float):
+                asset_value = float(asset['free']) * float(current_price)
+              else:
+                self.logger.warning("No price found for current asset={}".format(asset['asset']))
+                asset_value = 0
             else:
               asset_value = float(asset['free'])
 
@@ -50,10 +54,13 @@ class Strategy(AutoTrader):
               attributes['wallet'][asset['asset']] = {'balance': float(asset['free']), 'current_price': float(current_price), 'asset_value': float(asset_value)}
 
         with self.db.db_session() as session:
-          trade = session.query(Trade).order_by(Trade.datetime.desc()).limit(1).one().info()
-          if trade:
-            attributes['last_transaction_attempt'] = datetime.strptime(trade['datetime'], "%Y-%m-%dT%H:%M:%S.%f").replace(tzinfo=timezone.utc).astimezone(tz=None).strftime("%d/%m/%Y %H:%M:%S")
-    
+          try:
+            trade = session.query(Trade).order_by(Trade.datetime.desc()).limit(1).one().info()
+            if trade:
+                attributes['last_transaction_attempt'] = datetime.strptime(trade['datetime'], "%Y-%m-%dT%H:%M:%S.%f").replace(tzinfo=timezone.utc).astimezone(tz=None).strftime("%d/%m/%Y %H:%M:%S")
+          except: 
+            pass
+        
         attributes['last_sensor_update'] = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
 
         # Update HA Sensor
