@@ -2,8 +2,8 @@
 
 ADDON_NAME=$(bashio::addon.name)
 
-if [ -e /addons/$ADDON_NAME/_override_/testmode ]; then
-  bashio::log.info "Running in dev mode ..."
+if [ -e /addons/$ADDON_NAME/_override_/devmode ]; then
+  bashio::log.info "Running in Development mode ..."
   while true; do 
     sleep 1m
   done
