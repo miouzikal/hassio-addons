@@ -4,7 +4,7 @@ ADDON_NAME=$(bashio::addon.name)
 
 CONTAINER_ALREADY_STARTED=".CONTAINER_ALREADY_STARTED_PLACEHOLDER"
 if [ ! -e /addons/$ADDON_NAME/$CONTAINER_ALREADY_STARTED ]; then
-
+  mkdir -p /addons/$ADDON_NAME/
   touch /addons/$ADDON_NAME/$CONTAINER_ALREADY_STARTED
   bashio::log.info "First container startup ... Starting Initial Setup"
 
