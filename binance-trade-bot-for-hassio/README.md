@@ -4,6 +4,13 @@
 
 ![Current version][version]
 
+## Disclaimer
+### This Add-on is provided as-is and I am not responsible for any problems you may end up with in your Hassio or Binance setup.
+#### For information regarding the setup and configuration of the bot, refer to the bot's [git page](https://github.com/edeng23/binance-trade-bot)
+
+
+
+
 ## About
 
 Home Assistant Add-on to run an instance of [binance-trade-bot](https://github.com/edeng23/binance-trade-bot)  
@@ -38,14 +45,9 @@ To override `/app/binance_trade_bot/binance_api_manager.py`
   2. make the necessary changes to that file
   3. restart the add-on
   
-## For information regarding the setup and configuration of the bot, refer to the bot's [git page](https://github.com/edeng23/binance-trade-bot)
-  
-
-## This Add-on is provided as-is and I am not responsible for any problems you may end up with in your Hassio or Binance setup.
-
 [aarch64-shield]: https://img.shields.io/badge/aarch64-yes-green.svg
 [amd64-shield]: https://img.shields.io/badge/amd64-yes-green.svg
 [armhf-shield]: https://img.shields.io/badge/armhf-yes-green.svg
 [armv7-shield]: https://img.shields.io/badge/armv7-yes-green.svg
 [i386-shield]: https://img.shields.io/badge/i386-yes-green.svg
-[version]: https://img.shields.io/badge/version-v0.1.2-blue.svg
+[version]: https://img.shields.io/badge/version-v0.1.3-blue.svg
