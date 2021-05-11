@@ -12,26 +12,35 @@ The "hassio_default_strategy.py" lets the bot create a sensor in hassio with som
 ## New Installation
 
 1. Navigate in your Home Assistant frontend to **Supervisor** -> **Add-on Store** and add this URL as an additional repository: `https://github.com/miouzikal/hassio-addons`
-2. Find the "Binance Trade Bot for Hassio" add-on and click the "INSTALL" button.
-3. Configure the add-on and click on "START".
+2. Find the "**Binance Trade Bot for Hassio**" add-on and click the "**INSTALL**" button
+3. "**START**" the Add-on
+   * The first boot will run the Initial Setup
+4. Wait for the "**Initial Setup**" to complete
+5. **Configure** the Add-on and click on "**START**"
 
 ## Installation with existing Database
 
 1. Navigate in your Home Assistant frontend to **Supervisor** -> **Add-on Store** and add this URL as an additional repository: `https://github.com/miouzikal/hassio-addons`
-2. Find the "Binance Trade Bot for Hassio" add-on and click the "INSTALL" button.
-3. Start the add-on with the default configuration and let it run for a few seconds
-   - The add-on will log errors since there is no valid API keys.
-5. Stop the add-on.
-7. Copy your existing database in `/addons/_override_/data/` (overwrite any files in the destination folder)
-8. Configure the add-on
-9. Start the add-on
+2. Find the "**Binance Trade Bot for Hassio**" add-on and click the "**INSTALL**" button
+3. "**START**" the Add-on
+   * The first boot will run the Initial Setup
+4. Wait for the "**Initial Setup**" to complete
+5. **Copy your existing database** in `/addons/_override_/data/`
+6. **Configure** the Add-on and click on "**START**"
 
 ## Overriding files
 
-You can override any file of the bot by putting an edited version of the file in the _override_ folder, respecting the bot's folder structure.
-  i.e. to override "/app/binance_trade_bot/binance_api_manager.py", create a file in "/_override_/binance_trade_bot/binance_api_manager.py", make the necessary changes to that file and restart the add-on
+You can override any file of the bot by putting an edited version of the file in the `_override_` folder, respecting the bot's folder structure.
   
-## For information regarding the setup and configuration of the bot, reffer to the bot's [git page](https://github.com/edeng23/binance-trade-bot)
+**example :**  
+To override `/app/binance_trade_bot/binance_api_manager.py`
+  1. create a file in `/_override_/binance_trade_bot/binance_api_manager.py`
+  2. make the necessary changes to that file
+  3. restart the add-on
+  
+## For information regarding the setup and configuration of the bot, refer to the bot's [git page](https://github.com/edeng23/binance-trade-bot)
+  
+
 ## This Add-on is provided as-is and I am not responsible for any problems you may end up with in your Hassio or Binance setup.
 
 [aarch64-shield]: https://img.shields.io/badge/aarch64-yes-green.svg
