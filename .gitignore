@@ -1,1 +1,4 @@
+app/
 .vscode/
+_override_/
+.CONTAINER_ALREADY_STARTED_PLACEHOLDER
