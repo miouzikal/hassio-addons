@@ -3,7 +3,7 @@
   "version": "0.1.3",
   "slug": "binance-trade-bot-for-hassio",
   "description": "Automated cryptocurrency trading bot",
-  "url": "https://github.com/miouzikal/hassio-addons/tree/master/binance-trade-bot-for-hassio",
+  "url": "https://github.com/miouzikal/hassio-addons/tree/dev/binance-trade-bot-for-hassio",
   "arch": ["armhf", "armv7", "aarch64", "amd64", "i386"],
   "startup": "application",
   "hassio_api": true,
