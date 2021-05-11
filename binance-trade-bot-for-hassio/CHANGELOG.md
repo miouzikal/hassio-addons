@@ -8,6 +8,7 @@
 - Fix hassio_default strategy to account for missing 'last_transaction' if no transaction made
 - Change Development mode trigger from 'testmode' to 'devmode'
 - Add 'Initial Setup' logic
+- Update requirement - eventlet==0.31.0
 
 ## 0.1.2
 
