@@ -47,15 +47,15 @@ To override `/app/binance_trade_bot/binance_api_manager.py`
 
 ## Changing Repo & Branch
 
-Changing the default repository and branch through "BOT_REPO" & "REPO_BRANCH" config entries can break the Add-on.  
-I tested it with "edeng23:master" and "idkravitz:websockets-pr" <u>only</u> so I don't know how the add-on will behave if you use another repo and/or branch.  
+Changing the default repository and branch through `BOT_REPO` & `REPO_BRANCH` config entries can break the Add-on.  
+I tested it with `edeng23:master` and `idkravitz:websockets-pr` <u>only</u> so I don't know how the add-on will behave if you use another repo and/or branch.  
 Make sure you understand the implications of the changes you make and always **save your DB and config** before doing anything.  
 To keep the hassio sensor feature, you need to use the appropriate hassio_default strategy depending on the repository.
 
 **i.e.**  
-- idkravitz:websockets-pr -> hassio_idkravitz_default
-- edeng23:master -> hassio_default
-- any_other -> NOT TESTED
+- `idkravitz:websockets-pr` **->** hassio_idkravitz_default
+- `edeng23:master` **->** hassio_default
+- `any_other` **->** NOT TESTED
 
 
   
