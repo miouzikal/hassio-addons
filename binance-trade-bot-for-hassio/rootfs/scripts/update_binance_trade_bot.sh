@@ -10,7 +10,7 @@ find /addons/$ADDON_NAME/_override_/ -type f -not -path "*/data/*" | sed -e "s/_
 
 bashio::log.info 'Deleting app folder'
 rm -rf /addons/$ADDON_NAME/app
-bashio::log.info 'Updating binance-trade-bot from "'$BOT_REPO'"'
+bashio::log.info 'Updating binance-trade-bot to "'$BOT_REPO'" - "'$REPO_BRANCH'"'
 git clone -b $REPO_BRANCH $BOT_REPO /addons/$ADDON_NAME/app
 
 bashio::log.info "Installing missing requirements (if any) ..."
