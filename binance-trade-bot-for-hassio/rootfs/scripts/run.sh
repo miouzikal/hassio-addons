@@ -1,11 +1,12 @@
 #!/usr/bin/env bashio
 
 ADDON_NAME=$(bashio::addon.name)
+BOT_REPO=$(bashio::config 'BOT_REPO')
 
 CONTAINER_ALREADY_STARTED=".CONTAINER_ALREADY_STARTED_PLACEHOLDER"
 if [ ! -e /addons/$ADDON_NAME/$CONTAINER_ALREADY_STARTED ]; then
   mkdir -p /addons/$ADDON_NAME/
-  touch /addons/$ADDON_NAME/$CONTAINER_ALREADY_STARTED
+  echo $BOT_REPO > /addons/$ADDON_NAME/$CONTAINER_ALREADY_STARTED
   bashio::log.info "First container startup ... Starting Initial Setup"
 
   /scripts/install_binance_trade_bot.sh
@@ -20,12 +21,23 @@ else
       sleep 1m
     done
   else
-    /scripts/install_binance_trade_bot.sh
-    /scripts/init.sh
-    /scripts/override.sh
+    if [ $BOT_REPO == $(cat /addons/$ADDON_NAME/$CONTAINER_ALREADY_STARTED) ]; then
+      
+      /scripts/install_binance_trade_bot.sh
+      /scripts/init.sh
+      /scripts/override.sh
 
-    cd /addons/$ADDON_NAME/app/
-    bashio::log.info "Starting binance-trade-bot ..."
-    python3 -m binance_trade_bot
+      cd /addons/$ADDON_NAME/app/
+      bashio::log.info "Starting binance-trade-bot ..."
+      python3 -m binance_trade_bot
+    else
+      /scripts/update_binance_trade_bot.sh
+      /scripts/init.sh
+      /scripts/override.sh
+
+      cd /addons/$ADDON_NAME/app/
+      bashio::log.info "Starting binance-trade-bot ..."
+      python3 -m binance_trade_bot
+    fi
   fi
 fi
