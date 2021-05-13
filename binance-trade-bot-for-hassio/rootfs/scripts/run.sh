@@ -21,20 +21,18 @@ else
       sleep 1m
     done
   else
-    if [ $BOT_REPO == $(cat /addons/$ADDON_NAME/$CONTAINER_ALREADY_STARTED) ]; then
-      
-      /scripts/install_binance_trade_bot.sh
+    if [[ ! -s /addons/$ADDON_NAME/$CONTAINER_ALREADY_STARTED && $BOT_REPO != $(cat /addons/$ADDON_NAME/$CONTAINER_ALREADY_STARTED) ]]; then
+      echo $BOT_REPO > /addons/$ADDON_NAME/$CONTAINER_ALREADY_STARTED
+      /scripts/update_binance_trade_bot.sh
       /scripts/init.sh
       /scripts/override.sh
-
       cd /addons/$ADDON_NAME/app/
       bashio::log.info "Starting binance-trade-bot ..."
       python3 -m binance_trade_bot
     else
-      /scripts/update_binance_trade_bot.sh
+      /scripts/install_binance_trade_bot.sh
       /scripts/init.sh
       /scripts/override.sh
-
       cd /addons/$ADDON_NAME/app/
       bashio::log.info "Starting binance-trade-bot ..."
       python3 -m binance_trade_bot
