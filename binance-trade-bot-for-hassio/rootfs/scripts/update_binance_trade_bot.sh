@@ -13,5 +13,3 @@ git clone $BOT_REPO /addons/$ADDON_NAME/app
 
 bashio::log.info "Installing missing requirements (if any) ..."
 pip install -r /addons/$ADDON_NAME/app/requirements.txt -q
-
-/scripts/override.sh
