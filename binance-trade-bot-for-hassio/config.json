@@ -1,6 +1,6 @@
 {
   "name": "binance-trade-bot-for-hassio",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "slug": "binance-trade-bot-for-hassio",
   "description": "Automated cryptocurrency trading bot",
   "url": "https://github.com/miouzikal/hassio-addons/tree/master/binance-trade-bot-for-hassio",
@@ -10,6 +10,8 @@
   "homeassistant_api": true,
   "boot": "auto",
   "options": {
+    "BOT_REPO": "https://github.com/edeng23/binance-trade-bot.git",
+    "REPO_BRANCH": "master",
     "CURRENT_COIN_SYMBOL": "",
     "BRIDGE_SYMBOL": "USDT",
     "API_KEY": "",
@@ -24,6 +26,8 @@
     "SUPPORTED_COIN_LIST": ["ADA", "XMR", "VET", "HOT", "BAT", "ATOM", "ETH", "LINK", "UNI", "ONE", "EOS", "DOT", "MANA", "ROSE", "SOL", "ENJ"]
   },
   "schema": {
+    "BOT_REPO": "url",
+    "REPO_BRANCH": "str",
     "CURRENT_COIN_SYMBOL": "str?",
     "BRIDGE_SYMBOL": "str",
     "API_KEY": "str",

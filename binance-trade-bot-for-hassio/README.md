@@ -8,9 +8,6 @@
 ### This Add-on is provided as-is and I am not responsible for any problems you may end up with in your Hassio or Binance setup.
 #### For information regarding the setup and configuration of the bot, refer to the bot's [git page](https://github.com/edeng23/binance-trade-bot)
 
-
-
-
 ## About
 
 Home Assistant Add-on to run an instance of [binance-trade-bot](https://github.com/edeng23/binance-trade-bot)  
@@ -37,17 +34,34 @@ The "hassio_default_strategy.py" lets the bot create a sensor in hassio with som
 
 ## Overriding files
 
-You can override any file of the bot by putting an edited version of the file in the `_override_` folder, respecting the bot's folder structure.
-  
+You can override any file of the bot by putting an edited version of the file in the `_override_` folder, respecting the bot's folder structure.  
+> **NOTE:**  
+> Your overriden files may not work as expected if you decide to change the repository and/or branch.  
+> Make sure you update the override files as necessary.
+
 **example :**  
 To override `/app/binance_trade_bot/binance_api_manager.py`
   1. create a file in `/_override_/binance_trade_bot/binance_api_manager.py`
   2. make the necessary changes to that file
-  3. restart the add-on
+  3. restart the add-on  
+
+## Changing Repo & Branch
+
+Changing the default repository and branch through `BOT_REPO` & `REPO_BRANCH` config entries can break the Add-on.  
+I tested it with `edeng23:master` and `idkravitz:websockets-pr` <u>only</u> so I don't know how the add-on will behave if you use another repo and/or branch.  
+Make sure you understand the implications of the changes you make and always **save your DB and config** before doing anything.  
+To keep the hassio sensor feature, you need to use the appropriate hassio_default strategy depending on the repository.
+
+**i.e.**  
+- `idkravitz:websockets-pr` **->** hassio_idkravitz_default
+- `edeng23:master` **->** hassio_default
+- `any_other` **->** NOT TESTED
+
+
   
 [aarch64-shield]: https://img.shields.io/badge/aarch64-yes-green.svg
 [amd64-shield]: https://img.shields.io/badge/amd64-yes-green.svg
 [armhf-shield]: https://img.shields.io/badge/armhf-yes-green.svg
 [armv7-shield]: https://img.shields.io/badge/armv7-yes-green.svg
 [i386-shield]: https://img.shields.io/badge/i386-yes-green.svg
-[version]: https://img.shields.io/badge/version-v0.1.3-blue.svg
+[version]: https://img.shields.io/badge/version-v0.1.4-blue.svg
