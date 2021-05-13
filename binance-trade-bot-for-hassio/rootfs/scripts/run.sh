@@ -7,7 +7,7 @@ REPO_BRANCH=$(bashio::config 'REPO_BRANCH')
 CONTAINER_ALREADY_STARTED=".CONTAINER_ALREADY_STARTED_PLACEHOLDER"
 if [ ! -e /addons/$ADDON_NAME/$CONTAINER_ALREADY_STARTED ]; then
   mkdir -p /addons/$ADDON_NAME/
-  echo $BOT_REPO'#'REPO_BRANCH > /addons/$ADDON_NAME/$CONTAINER_ALREADY_STARTED
+  echo $BOT_REPO'#'$REPO_BRANCH > /addons/$ADDON_NAME/$CONTAINER_ALREADY_STARTED
   bashio::log.info "First container startup ... Starting Initial Setup"
 
   /scripts/install_binance_trade_bot.sh
@@ -22,8 +22,8 @@ else
       sleep 1m
     done
   else
-    if [[ $BOT_REPO != $(cat /addons/$ADDON_NAME/$CONTAINER_ALREADY_STARTED | cut -d '#' -f 1) || $REPO_BRANCH != $(cat /addons/$ADDON_NAME/$CONTAINER_ALREADY_STARTED | cut -d '#' -f 2) ]]; then
-      echo $BOT_REPO'#'REPO_BRANCH > /addons/$ADDON_NAME/$CONTAINER_ALREADY_STARTED
+    if [[ $BOT_REPO != $(cat /addons/$ADDON_NAME/$CONTAINER_ALREADY_STARTED | cut -d '#' -f 1) ]] || [[ $REPO_BRANCH != $(cat /addons/$ADDON_NAME/$CONTAINER_ALREADY_STARTED | cut -d '#' -f 2) ]]; then
+      echo $BOT_REPO'#'$REPO_BRANCH > /addons/$ADDON_NAME/$CONTAINER_ALREADY_STARTED
       /scripts/update_binance_trade_bot.sh
       /scripts/init.sh
       /scripts/override.sh
