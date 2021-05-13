@@ -17,11 +17,11 @@ if [ ! -e /addons/$ADDON_NAME/$CONTAINER_ALREADY_STARTED ]; then
 else
   if [ -e /addons/$ADDON_NAME/_override_/devmode ]; then
     bashio::log.info "Running in Development mode ..."
-    while true; do 
+    while true; do
       sleep 1m
     done
   else
-    if [[ ! -s /addons/$ADDON_NAME/$CONTAINER_ALREADY_STARTED && $BOT_REPO != $(cat /addons/$ADDON_NAME/$CONTAINER_ALREADY_STARTED) ]]; then
+    if [[ $BOT_REPO != $(cat /addons/$ADDON_NAME/$CONTAINER_ALREADY_STARTED) ]]; then
       echo $BOT_REPO > /addons/$ADDON_NAME/$CONTAINER_ALREADY_STARTED
       /scripts/update_binance_trade_bot.sh
       /scripts/init.sh
