@@ -1,7 +1,7 @@
 {
-  "name": "binance-trade-bot-for-hassio-olivier",
+  "name": "binance-trade-bot-for-hassio",
   "version": "0.1.4",
-  "slug": "binance-trade-bot-for-hassio-olivier",
+  "slug": "binance-trade-bot-for-hassio",
   "description": "Automated cryptocurrency trading bot",
   "url": "https://github.com/miouzikal/hassio-addons/tree/master/binance-trade-bot-for-hassio",
   "arch": ["armhf", "armv7", "aarch64", "amd64", "i386"],
