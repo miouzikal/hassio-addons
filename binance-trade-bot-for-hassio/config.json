@@ -11,6 +11,7 @@
   "boot": "auto",
   "options": {
     "BOT_REPO": "https://github.com/edeng23/binance-trade-bot.git",
+    "REPO_BRANCH": "master",
     "CURRENT_COIN_SYMBOL": "",
     "BRIDGE_SYMBOL": "USDT",
     "API_KEY": "",
@@ -26,6 +27,7 @@
   },
   "schema": {
     "BOT_REPO": "url",
+    "REPO_BRANCH": "str",
     "CURRENT_COIN_SYMBOL": "str?",
     "BRIDGE_SYMBOL": "str",
     "API_KEY": "str",
