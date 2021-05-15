@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.5
+
+- Add support for configuring BUY/SELL types
+
 ## 0.1.4
 
 - Add support for other repos and branches
