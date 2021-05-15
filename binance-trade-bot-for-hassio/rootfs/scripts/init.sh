@@ -23,7 +23,7 @@ if [[ $(bashio::config 'BUY_ORDER_TYPE') != null ]]; then
 fi
 
 if [[ $(bashio::config 'SELL_ORDER_TYPE') != null ]]; then
-  echo buy_order_type = $(bashio::config 'SELL_ORDER_TYPE') >> /addons/$ADDON_NAME/app/user.cfg
+  echo sell_order_type = $(bashio::config 'SELL_ORDER_TYPE') >> /addons/$ADDON_NAME/app/user.cfg
 fi
 
 bashio::log.info "Updating 'supported_coin_list' ..."
