@@ -18,11 +18,11 @@ buy_timeout = $(bashio::config 'BUY_TIMEOUT')
 sell_timeout = $(bashio::config 'SELL_TIMEOUT')
 EOF
 
-if [[ -z $(bashio::config 'BUY_ORDER_TYPE') ]]; then
+if [[ $(bashio::config 'BUY_ORDER_TYPE') != null ]]; then
   echo buy_order_type = $(bashio::config 'BUY_ORDER_TYPE') >> /addons/$ADDON_NAME/app/user.cfg
 fi
 
-if [[ -z $(bashio::config 'SELL_ORDER_TYPE') ]]; then
+if [[ $(bashio::config 'SELL_ORDER_TYPE') != null ]]; then
   echo buy_order_type = $(bashio::config 'SELL_ORDER_TYPE') >> /addons/$ADDON_NAME/app/user.cfg
 fi
 
