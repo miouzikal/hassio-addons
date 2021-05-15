@@ -16,9 +16,15 @@ scout_sleep_time = $(bashio::config 'SCOUT_SLEEP_TIME')
 strategy = $(bashio::config 'STRATEGY')
 buy_timeout = $(bashio::config 'BUY_TIMEOUT')
 sell_timeout = $(bashio::config 'SELL_TIMEOUT')
-buy_order_type = $(bashio::config 'BUY_ORDER_TYPE')
-sell_order_type = $(bashio::config 'SELL_ORDER_TYPE')
 EOF
+
+if [[ -z $(bashio::config 'BUY_ORDER_TYPE') ]]; then
+  echo buy_order_type = $(bashio::config 'BUY_ORDER_TYPE') >> /addons/$ADDON_NAME/app/user.cfg
+fi
+
+if [[ -z $(bashio::config 'SELL_ORDER_TYPE') ]]; then
+  echo buy_order_type = $(bashio::config 'SELL_ORDER_TYPE') >> /addons/$ADDON_NAME/app/user.cfg
+fi
 
 bashio::log.info "Updating 'supported_coin_list' ..."
 cat > /addons/$ADDON_NAME/app/supported_coin_list << EOF
