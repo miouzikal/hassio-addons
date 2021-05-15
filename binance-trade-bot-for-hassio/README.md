@@ -57,6 +57,12 @@ To keep the hassio sensor feature, you need to use the appropriate hassio_defaul
 - `edeng23:master` **->** hassio_default
 - `any_other` **->** NOT TESTED
 
+## BUY and SELL Types
+
+If needed, you can set the buy and sell types in the add-on configuration using theses config parameters :
+
+- `BUY_ORDER_TYPE: limit`
+- `SELL_ORDER_TYPE: market`
 
   
 [aarch64-shield]: https://img.shields.io/badge/aarch64-yes-green.svg
@@ -64,4 +70,4 @@ To keep the hassio sensor feature, you need to use the appropriate hassio_defaul
 [armhf-shield]: https://img.shields.io/badge/armhf-yes-green.svg
 [armv7-shield]: https://img.shields.io/badge/armv7-yes-green.svg
 [i386-shield]: https://img.shields.io/badge/i386-yes-green.svg
-[version]: https://img.shields.io/badge/version-v0.1.4-blue.svg
+[version]: https://img.shields.io/badge/version-v0.1.5-blue.svg
