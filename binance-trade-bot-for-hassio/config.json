@@ -1,6 +1,6 @@
 {
   "name": "binance-trade-bot-for-hassio",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "slug": "binance-trade-bot-for-hassio",
   "description": "Automated cryptocurrency trading bot",
   "url": "https://github.com/miouzikal/hassio-addons/tree/master/binance-trade-bot-for-hassio",
@@ -39,6 +39,8 @@
     "STRATEGY": "str",
     "BUY_TIMEOUT": "int",
     "SELL_TIMEOUT": "int",
+    "BUY_ORDER_TYPE": "list(limit|market)?",
+    "SELL_ORDER_TYPE": "list(limit|market)?",
     "SUPPORTED_COIN_LIST": ["str"],
     "log_level": "list(debug|info|warning|error)?"
   },
