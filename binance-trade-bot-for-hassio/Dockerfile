@@ -13,20 +13,8 @@ RUN curl -Lso /usr/bin/ha "https://github.com/home-assistant/cli/releases/downlo
 RUN apk update && apk upgrade && apk add git python3 py3-pip gcc musl-dev python3-dev libffi-dev openssl-dev cargo build-base vim
 
 # Install knowned requirements
-RUN pip install -q python-binance==0.7.11 \
-                    sqlalchemy==1.3.23 \
-                    schedule==1.1.0 \
-                    apprise==0.9.2 \
-                    Flask==1.1.2 \
-                    gunicorn==20.1.0 \
-                    flask-cors==3.0.10 \
-                    flask-socketio==5.0.1 \
-                    eventlet==0.30.2 \
-                    python-socketio[client]==5.2.1 \
-                    cachetools==4.2.2 \
-                    sqlitedict==1.7.0 \
-                    unicorn-binance-websocket-api==1.30.0 \
-                    unicorn-fy==0.11.0
+RUN git clone -b master https://github.com/idkravitz/binance-trade-bot.git /tmp/bot/ && \
+    pip install -r /tmp/bot/requirements.txt
 
 # Copy root filesystem
 COPY rootfs /
