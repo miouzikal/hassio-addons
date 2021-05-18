@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.6
+
+- Use idkravitz requirements when building image
+
 ## 0.1.5
 
 - Add support for configuring BUY/SELL types
