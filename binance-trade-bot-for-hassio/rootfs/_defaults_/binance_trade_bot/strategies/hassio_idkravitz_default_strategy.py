@@ -115,7 +115,8 @@ class Strategy(AutoTrader):
                 current_coin_btc_asset_value = float(current_coin_price_in_btc) * float(asset['free'])
                 total_coin_in_btc += current_coin_btc_asset_value
               except:
-                self.logger.warning("No price found for current coin + BTC={}".format(current_coin + "BTC"))
+                # Pretty unlikely since all coins trade with BTC
+                self.logger.warning("No price found for current coin + BTC={}".format(current_coin + "BTC"), notification=False)
                 pass
                 
               attributes['wallet'][asset['asset']] = {
