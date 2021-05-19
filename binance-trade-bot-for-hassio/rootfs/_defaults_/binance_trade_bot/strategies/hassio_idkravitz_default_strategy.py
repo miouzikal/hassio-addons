@@ -12,12 +12,21 @@ class Strategy(AutoTrader):
     def initialize(self):
         super().initialize()
         self.initialize_current_coin()
+        self.scount_loop_count = 0
 
     def scout(self):
         """
         Scout for potential jumps from the current coin to another coin
         """
         current_coin = self.db.get_current_coin()
+        
+        if self.scount_loop_count == 60:
+          # Log the current coin+Bridge, so users can see *some* activity and not think the bot has
+          # stopped. Don't send to notification service
+          self.logger.info(f"Scouting... current: {current_coin + self.config.BRIDGE}", notification=False)
+          self.scount_loop_count = 0
+
+        self.scount_loop_count += 1
 
         current_coin_price = self.manager.get_ticker_price(current_coin + self.config.BRIDGE)
 
@@ -25,47 +34,8 @@ class Strategy(AutoTrader):
             self.logger.info("Skipping scouting... current coin {} not found".format(current_coin + self.config.BRIDGE))
             return
 
-        # Update Home Assistant sensor
-        total_balance_usdt = 0
-        attributes = {}
-        attributes['bridge'] = self.config.BRIDGE_SYMBOL
-        attributes['current_coin'] = str(current_coin).replace("<", "").replace(">", "")
-        attributes['wallet'] = {}
-
-        for asset in self.manager.binance_client.get_account()["balances"]:
-          if float(asset['free']) > 0:
-            if asset['asset'] not in ['BUSD', 'USDT']:
-              current_price = self.manager.get_ticker_price(asset['asset'] + self.config.BRIDGE_SYMBOL)
-              if isinstance(current_price, float):
-                asset_value = float(asset['free']) * float(current_price)
-              else:
-                self.logger.warning("No price found for current asset={}".format(asset['asset']))
-                asset_value = 0
-            else:
-              asset_value = float(asset['free'])
-
-            total_balance_usdt += asset_value
-
-            if asset_value > 1:
-              attributes['wallet'][asset['asset']] = {'balance': float(asset['free']), 'current_price': float(current_price), 'asset_value': float(asset_value)}
-
-        with self.db.db_session() as session:
-          try:
-            trade = session.query(Trade).order_by(Trade.datetime.desc()).limit(1).one().info()
-            if trade:
-                attributes['last_transaction_attempt'] = datetime.strptime(trade['datetime'], "%Y-%m-%dT%H:%M:%S.%f").replace(tzinfo=timezone.utc).astimezone(tz=None).strftime("%d/%m/%Y %H:%M:%S")
-          except: 
-            pass
-        
-        attributes['last_sensor_update'] = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-
-        data = {'state': round(total_balance_usdt, 2), 'attributes': attributes}
-        os.system("/scripts/update_ha_sensor.sh '" + str(json.dumps(data)) + "'")
-
-        # END - Update Home Assistant sensor
-
+        self.update_ha_sensor(current_coin)
         self._jump_to_best_coin(current_coin, current_coin_price)
-        self.bridge_scout()
 
     def bridge_scout(self):
         current_coin = self.db.get_current_coin()
@@ -99,3 +69,43 @@ class Strategy(AutoTrader):
                 self.logger.info(f"Purchasing {current_coin} to begin trading")
                 self.manager.buy_alt(current_coin, self.config.BRIDGE)
                 self.logger.info("Ready to start trading")
+
+    def update_ha_sensor(self, current_coin):
+      """
+      Update the Home Assistant sensor with new data.
+      """
+      total_balance_usdt = 0
+      attributes = {}
+      attributes['bridge'] = self.config.BRIDGE_SYMBOL
+      attributes['current_coin'] = str(current_coin).replace("<", "").replace(">", "")
+      attributes['wallet'] = {}
+
+      for asset in self.manager.binance_client.get_account()["balances"]:
+        if float(asset['free']) > 0:
+          if asset['asset'] not in ['BUSD', 'USDT']:
+            current_price = self.manager.get_ticker_price(asset['asset'] + self.config.BRIDGE_SYMBOL)
+            if isinstance(current_price, float):
+              asset_value = float(asset['free']) * float(current_price)
+            else:
+              self.logger.warning("No price found for current asset={}".format(asset['asset']))
+              asset_value = 0
+          else:
+            asset_value = float(asset['free'])
+
+          total_balance_usdt += asset_value
+
+          if asset_value > 1:
+            attributes['wallet'][asset['asset']] = {'balance': float(asset['free']), 'current_price': float(current_price), 'asset_value': float(asset_value)}
+
+      with self.db.db_session() as session:
+        try:
+          trade = session.query(Trade).order_by(Trade.datetime.desc()).limit(1).one().info()
+          if trade:
+              attributes['last_transaction_attempt'] = datetime.strptime(trade['datetime'], "%Y-%m-%dT%H:%M:%S.%f").replace(tzinfo=timezone.utc).astimezone(tz=None).strftime("%d/%m/%Y %H:%M:%S")
+        except: 
+          pass
+      
+      attributes['last_sensor_update'] = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+
+      data = {'state': round(total_balance_usdt, 2), 'attributes': attributes}
+      os.system("/scripts/update_ha_sensor.sh '" + str(json.dumps(data)) + "'")
