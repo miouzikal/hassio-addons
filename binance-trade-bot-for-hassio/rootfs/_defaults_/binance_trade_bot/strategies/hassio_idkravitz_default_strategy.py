@@ -64,18 +64,20 @@ class Strategy(AutoTrader):
             if self.config.CURRENT_COIN_SYMBOL == "":
                 current_coin = self.db.get_current_coin()
                 self.logger.info(f"Purchasing {current_coin} to begin trading")
-                self.manager.buy_alt(current_coin, self.config.BRIDGE)
+                self.manager.buy_alt(
+                  current_coin, self.config.BRIDGE, self.manager.get_ticker_price(current_coin + self.config.BRIDGE)
+                )
                 self.logger.info("Ready to start trading")
 
-    def log_scout(self, current_coin, current_coin_price, wait_iterations=60, notification=False):
+    def log_scout(self, current_coin, current_coin_price, wait_iterations=300, notification=False):
       """
       Log each scout every X times. This will prevent logs getting spammed.
       """
 
-      if self.scount_loop_count == wait_iterations:
+      if self.scount_loop_count in [0, wait_iterations]:
         # Log the current coin+Bridge, so users can see *some* activity and not think the bot has
         # stopped. Don't send to notification service
-        self.logger.info(f"Scouting... current: {current_coin + self.config.BRIDGE} (price: {current_coin_price})", notification=notification)
+        self.logger.info(f"Scouting... current: {current_coin + self.config.BRIDGE}", notification=notification)
         self.scount_loop_count = 0
 
       self.scount_loop_count += 1
@@ -111,20 +113,27 @@ class Strategy(AutoTrader):
 
               # Get total amount in terms of BTC amount
               current_coin_btc_asset_value = 0
-              try:
-                current_coin_price_in_btc = self.manager.get_ticker_price(current_coin + "BTC")
-                current_coin_btc_asset_value = float(current_coin_price_in_btc) * float(asset['free'])
-                total_coin_in_btc += current_coin_btc_asset_value
-              except:
-                # Pretty unlikely since all coins trade with BTC
-                self.logger.warning("No price found for current coin + BTC={}".format(current_coin + "BTC"), notification=False)
-                pass
+
+              if asset['asset'] not in ['BUSD', 'USDT']:
+                # Only check value if not in bridge coin.
+                try:
+                  current_coin_price_in_btc = self.manager.get_ticker_price(current_coin + "BTC")
+                  current_coin_btc_asset_value = float(current_coin_price_in_btc) * float(asset['free'])
+                except:
+                  # Pretty unlikely since all coins trade with BTC
+                  self.logger.warning("No price found for current coin + BTC={}".format(current_coin + "BTC"), notification=False)
+                  pass
+              elif asset['asset'] == 'USDT':
+                btc_to_usdt_price = self.manager.get_ticker_price("BTCUSDT")
+                current_coin_btc_asset_value = float(asset['free']) / float(btc_to_usdt_price)
                 
+              total_coin_in_btc += current_coin_btc_asset_value
+
               attributes['wallet'][asset['asset']] = {
                 'balance': float(asset['free']), 
                 'current_price': float(current_price), 
                 'asset_value_us_dollar': round(asset_value, 2),
-                'asset_value_in_btc': round(current_coin_btc_asset_value, 4)
+                'asset_value_in_btc': round(current_coin_btc_asset_value, 6)
               }
 
         with self.db.db_session() as session:
@@ -137,10 +146,9 @@ class Strategy(AutoTrader):
         
         attributes['last_sensor_update'] = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
         attributes['sensor_update_interval'] = wait_iterations
-
+        attributes['unit_of_measurement'] = 'BTC'
         data = {
-          'state': round(total_coin_in_btc, 4),
-          'unit_of_measurement': 'BTC',
+          'state': round(total_coin_in_btc, 6),
           'attributes': attributes
         }
         os.system("/scripts/update_ha_sensor.sh '" + str(json.dumps(data)) + "'")
