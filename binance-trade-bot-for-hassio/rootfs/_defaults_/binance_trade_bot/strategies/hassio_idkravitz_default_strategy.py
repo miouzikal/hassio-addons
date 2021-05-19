@@ -28,8 +28,11 @@ class Strategy(AutoTrader):
             self.logger.info("Skipping scouting... current coin {} not found".format(current_coin + self.config.BRIDGE))
             return
 
-        self.update_ha_sensor(current_coin)
         self._jump_to_best_coin(current_coin, current_coin_price)
+
+        # Update HA sensor AFTER doing the bot functions so that any breakage in HA won't affect trading.
+        # E.g. HA API changes, etc.
+        self.update_ha_sensor(current_coin)
 
     def bridge_scout(self):
         current_coin = self.db.get_current_coin()
