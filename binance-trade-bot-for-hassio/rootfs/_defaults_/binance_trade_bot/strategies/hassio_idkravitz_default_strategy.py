@@ -20,9 +20,8 @@ class Strategy(AutoTrader):
         """
         current_coin = self.db.get_current_coin()
         
-        self.log_scout(current_coin)
-
         current_coin_price = self.manager.get_ticker_price(current_coin + self.config.BRIDGE)
+        self.log_scout(current_coin, current_coin_price)
 
         if current_coin_price is None:
             self.logger.info("Skipping scouting... current coin {} not found".format(current_coin + self.config.BRIDGE))
@@ -32,7 +31,7 @@ class Strategy(AutoTrader):
 
         # Update HA sensor AFTER doing the bot functions so that any breakage in HA won't affect trading.
         # E.g. HA API changes, etc.
-        self.update_ha_sensor(current_coin)
+        self.update_ha_sensor(current_coin, current_coin_price)
 
     def bridge_scout(self):
         current_coin = self.db.get_current_coin()
@@ -67,7 +66,7 @@ class Strategy(AutoTrader):
                 self.manager.buy_alt(current_coin, self.config.BRIDGE)
                 self.logger.info("Ready to start trading")
 
-    def log_scout(self, current_coin, wait_iterations=60, notification=False):
+    def log_scout(self, current_coin, current_coin_price, wait_iterations=60, notification=False):
       """
       Log each scout every X times. This will prevent logs getting spammed.
       """
@@ -75,47 +74,67 @@ class Strategy(AutoTrader):
       if self.scount_loop_count == wait_iterations:
         # Log the current coin+Bridge, so users can see *some* activity and not think the bot has
         # stopped. Don't send to notification service
-        self.logger.info(f"Scouting... current: {current_coin + self.config.BRIDGE}", notification=notification)
+        self.logger.info(f"Scouting... current: {current_coin + self.config.BRIDGE} (price: {current_coin_price})", notification=notification)
         self.scount_loop_count = 0
 
       self.scount_loop_count += 1
 
-    def update_ha_sensor(self, current_coin):
+    def update_ha_sensor(self, current_coin, current_coin_price, wait_iterations=30):
       """
-      Update the Home Assistant sensor with new data.
+      Update the Home Assistant sensor with new data every 30 seconds.
       """
-      total_balance_usdt = 0
-      attributes = {}
-      attributes['bridge'] = self.config.BRIDGE_SYMBOL
-      attributes['current_coin'] = str(current_coin).replace("<", "").replace(">", "")
-      attributes['wallet'] = {}
+      if self.scount_loop_count == wait_iterations:
 
-      for asset in self.manager.binance_client.get_account()["balances"]:
-        if float(asset['free']) > 0:
-          if asset['asset'] not in ['BUSD', 'USDT']:
-            current_price = self.manager.get_ticker_price(asset['asset'] + self.config.BRIDGE_SYMBOL)
-            if isinstance(current_price, float):
-              asset_value = float(asset['free']) * float(current_price)
+        total_balance_usdt = 0
+        total_coin_in_btc = 0
+        attributes = {}
+        attributes['bridge'] = self.config.BRIDGE_SYMBOL
+        attributes['current_coin'] = str(current_coin).replace("<", "").replace(">", "")
+        attributes['wallet'] = {}
+
+        for asset in self.manager.binance_client.get_account()["balances"]:
+          if float(asset['free']) > 0:
+            if asset['asset'] not in ['BUSD', 'USDT']:
+              current_price = self.manager.get_ticker_price(asset['asset'] + self.config.BRIDGE_SYMBOL)
+              if isinstance(current_price, float):
+                asset_value = float(asset['free']) * float(current_price)
+              else:
+                self.logger.warning("No price found for current asset={}".format(asset['asset']))
+                asset_value = 0
             else:
-              self.logger.warning("No price found for current asset={}".format(asset['asset']))
-              asset_value = 0
-          else:
-            asset_value = float(asset['free'])
+              asset_value = float(asset['free'])
 
-          total_balance_usdt += asset_value
+            total_balance_usdt += asset_value
 
-          if asset_value > 1:
-            attributes['wallet'][asset['asset']] = {'balance': float(asset['free']), 'current_price': float(current_price), 'asset_value': float(asset_value)}
+            if asset_value > 1:
 
-      with self.db.db_session() as session:
-        try:
-          trade = session.query(Trade).order_by(Trade.datetime.desc()).limit(1).one().info()
-          if trade:
-              attributes['last_transaction_attempt'] = datetime.strptime(trade['datetime'], "%Y-%m-%dT%H:%M:%S.%f").replace(tzinfo=timezone.utc).astimezone(tz=None).strftime("%d/%m/%Y %H:%M:%S")
-        except: 
-          pass
-      
-      attributes['last_sensor_update'] = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+              # Get total amount in terms of BTC amount
+              current_coin_btc_asset_value = 0
+              try:
+                current_coin_price_in_btc = self.manager.get_ticker_price(current_coin + "BTC")
+                current_coin_btc_asset_value = float(current_coin_price_in_btc) * float(asset['free'])
+                total_coin_in_btc += current_coin_btc_asset_value
+              except:
+                self.logger.warning("No price found for current coin + BTC={}".format(current_coin + "BTC"))
+                pass
+                
+              attributes['wallet'][asset['asset']] = {
+                'balance': float(asset['free']), 
+                'current_price': float(current_price), 
+                'asset_value_us_dollar': round(asset_value, 2),
+                'asset_value_in_btc': round(current_coin_btc_asset_value, 4)
+              }
 
-      data = {'state': round(total_balance_usdt, 2), 'attributes': attributes}
-      os.system("/scripts/update_ha_sensor.sh '" + str(json.dumps(data)) + "'")
+        with self.db.db_session() as session:
+          try:
+            trade = session.query(Trade).order_by(Trade.datetime.desc()).limit(1).one().info()
+            if trade:
+                attributes['last_transaction_attempt'] = datetime.strptime(trade['datetime'], "%Y-%m-%dT%H:%M:%S.%f").replace(tzinfo=timezone.utc).astimezone(tz=None).strftime("%d/%m/%Y %H:%M:%S")
+          except: 
+            pass
+        
+        attributes['last_sensor_update'] = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+        attributes['sensor_update_interval'] = wait_iterations
+
+        data = {'state': round(total_coin_in_btc, 4), 'attributes': attributes}
+        os.system("/scripts/update_ha_sensor.sh '" + str(json.dumps(data)) + "'")
