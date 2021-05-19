@@ -20,13 +20,7 @@ class Strategy(AutoTrader):
         """
         current_coin = self.db.get_current_coin()
         
-        if self.scount_loop_count == 60:
-          # Log the current coin+Bridge, so users can see *some* activity and not think the bot has
-          # stopped. Don't send to notification service
-          self.logger.info(f"Scouting... current: {current_coin + self.config.BRIDGE}", notification=False)
-          self.scount_loop_count = 0
-
-        self.scount_loop_count += 1
+        self.log_scout(current_coin)
 
         current_coin_price = self.manager.get_ticker_price(current_coin + self.config.BRIDGE)
 
@@ -69,6 +63,19 @@ class Strategy(AutoTrader):
                 self.logger.info(f"Purchasing {current_coin} to begin trading")
                 self.manager.buy_alt(current_coin, self.config.BRIDGE)
                 self.logger.info("Ready to start trading")
+
+    def log_scout(self, current_coin, wait_iterations=60, notification=False):
+      """
+      Log each scout every X times. This will prevent logs getting spammed.
+      """
+
+      if self.scount_loop_count == wait_iterations:
+        # Log the current coin+Bridge, so users can see *some* activity and not think the bot has
+        # stopped. Don't send to notification service
+        self.logger.info(f"Scouting... current: {current_coin + self.config.BRIDGE}", notification=notification)
+        self.scount_loop_count = 0
+
+      self.scount_loop_count += 1
 
     def update_ha_sensor(self, current_coin):
       """
