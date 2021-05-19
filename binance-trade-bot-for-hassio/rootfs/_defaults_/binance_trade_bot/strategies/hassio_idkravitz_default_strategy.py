@@ -13,6 +13,7 @@ class Strategy(AutoTrader):
         super().initialize()
         self.initialize_current_coin()
         self.scount_loop_count = 0
+        self.ha_update_loop_count = 0
 
     def scout(self):
         """
@@ -83,8 +84,8 @@ class Strategy(AutoTrader):
       """
       Update the Home Assistant sensor with new data every 30 seconds.
       """
-      if self.scount_loop_count == wait_iterations:
-
+      if self.ha_update_loop_count == wait_iterations:
+        self.ha_update_loop_count = 0
         total_balance_usdt = 0
         total_coin_in_btc = 0
         attributes = {}
@@ -137,5 +138,11 @@ class Strategy(AutoTrader):
         attributes['last_sensor_update'] = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
         attributes['sensor_update_interval'] = wait_iterations
 
-        data = {'state': round(total_coin_in_btc, 4), 'attributes': attributes}
+        data = {
+          'state': round(total_coin_in_btc, 4),
+          'unit_of_measurement': 'BTC',
+          'attributes': attributes
+        }
         os.system("/scripts/update_ha_sensor.sh '" + str(json.dumps(data)) + "'")
+
+      self.ha_update_loop_count += 1
