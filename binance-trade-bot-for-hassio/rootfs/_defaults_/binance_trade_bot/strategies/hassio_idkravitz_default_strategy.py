@@ -12,7 +12,6 @@ from binance_trade_bot.strategies.default_strategy import Strategy
 class Strategy(Strategy):
     def initialize(self):
         super().initialize()
-        self.initialize_current_coin()
         self.scount_loop_count = 0
         self.ha_update_loop_count = 0
 
