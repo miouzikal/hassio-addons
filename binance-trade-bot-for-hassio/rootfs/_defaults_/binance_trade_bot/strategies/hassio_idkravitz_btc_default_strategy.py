@@ -14,8 +14,8 @@ class Strategy(Strategy):
         super().initialize()
         self.scount_loop_count = 0
         self.ha_update_loop_count = 0
-        self.fetch_eur_balance = False
-        self.fetch_usd_balance = True
+        self.fetch_eur_balance = True
+        self.fetch_usd_balance = False
 
     def scout(self):
         """
@@ -116,8 +116,11 @@ class Strategy(Strategy):
                 except:
                     pass
 
-            attributes['total_balance_usdt'] = round(total_balance_usdt, 0)
-            attributes['total_balance_eur'] = round(total_balance_eur, 0)
+            if self.fetch_usd_balance:
+                attributes['total_balance_usdt'] = round(total_balance_usdt, 0)
+            if self.fetch_eur_balance:
+                attributes['total_balance_eur'] = round(total_balance_eur, 0)
+                
             attributes['last_sensor_update'] = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
             attributes['sensor_update_interval'] = wait_iterations
             attributes['unit_of_measurement'] = 'BTC'
