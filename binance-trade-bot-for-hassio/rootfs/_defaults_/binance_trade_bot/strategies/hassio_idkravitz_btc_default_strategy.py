@@ -14,7 +14,8 @@ class Strategy(Strategy):
         super().initialize()
         self.scount_loop_count = 0
         self.ha_update_loop_count = 0
-        self.fetch_eur_balance = True
+        self.fetch_eur_balance = False
+        self.fetch_usd_balance = True
 
     def scout(self):
         """
@@ -71,36 +72,39 @@ class Strategy(Strategy):
 
             for asset in self.manager.binance_client.get_account()["balances"]:
                 if float(asset['free']) > 0:
-                    if asset['asset'] not in ['BUSD', 'USDT']:
-                        current_price = self.manager.get_ticker_price(asset['asset'] + self.config.BRIDGE_SYMBOL)
-                        if isinstance(current_price, float):
-                            asset_value = float(asset['free']) * float(current_price)
+                    asset_value_usd = 0
+                    asset_value_in_eur = 0
+                    asset_entry = {'balance': float(asset['free'])}
+
+                    if self.fetch_usd_balance:
+                        if asset['asset'] not in ['BUSD', 'USDT']:
+                            current_price = self.manager.get_ticker_price(asset['asset'] + self.config.BRIDGE_SYMBOL)
+                            if isinstance(current_price, float):
+                                asset_value_usd = float(asset['free']) * float(current_price)
+                            else:
+                                self.logger.warning("No price found for current asset={}".format(asset['asset']))
                         else:
-                            self.logger.warning("No price found for current asset={}".format(asset['asset']))
-                            asset_value = 0
-                    else:
-                        asset_value = float(asset['free'])
+                            asset_value_usd = float(asset['free'])
 
-                    total_balance_usdt += asset_value
+                        total_balance_usdt += asset_value_usd
 
-                    if asset_value > 1:
+                        asset_entry['current_price'] = round(current_price)
+                        asset_entry['asset_value_us_dollar'] = round(asset_value_usd, 2)
 
-                        attributes['wallet'][asset['asset']] = {
-                            'balance': float(asset['free']),
-                            'current_price': float(current_price),
-                            'asset_value_us_dollar': round(asset_value, 2),
-                        }
+                    # Get total amount in terms of BTC amount
+                    asset_value_in_btc = self.get_btc_amount(coin_symbol=asset['asset'], coin_total=asset['free'])
+                    total_coin_in_btc += asset_value_in_btc
+                    asset_entry['asset_value_in_btc'] = round(asset_value_in_btc, 6)
 
+                    if self.fetch_eur_balance:
                         # Get total amount in terms of BTC amount
-                        asset_value_in_btc = self.get_btc_amount(coin_symbol=asset['asset'], coin_total=asset['free'])
-                        total_coin_in_btc += asset_value_in_btc
-                        attributes['wallet'][asset['asset']]['asset_value_in_btc'] = round(asset_value_in_btc, 6)
+                        asset_value_in_eur = self.get_btc_amount_in_euro(btc=asset_value_in_btc)
+                        total_balance_eur += asset_value_in_eur
+                        asset_entry['asset_value_in_eur'] = round(asset_value_in_eur, 2)
 
-                        if self.fetch_eur_balance:
-                            # Get total amount in terms of BTC amount
-                            asset_value_in_eur = self.get_btc_amount_in_euro(btc=asset_value_in_btc)
-                            total_balance_eur += asset_value_in_eur
-                            attributes['wallet'][asset['asset']]['asset_value_in_eur'] = round(asset_value_in_eur, 2)
+                    if asset_value_usd > 1 or asset_value_in_eur > 1:
+                        # Only add this coin if it has value over a euro or dollar
+                        attributes['wallet'][asset['asset']] = asset_entry
 
             with self.db.db_session() as session:
                 try:
