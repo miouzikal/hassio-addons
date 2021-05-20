@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.7
+
+- Fix logging
+- Add hassio_idkravitz_btc_default_strategy
+
 ## 0.1.6
 
 - Use idkravitz requirements when building image
