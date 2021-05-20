@@ -26,6 +26,6 @@ bashio::log.debug "API Response: ${response}"
 if [[ "${status}" -eq 200 || "${status}" -eq 201 ]]; then
     bashio::log.debug "${status} ${response}"
 else
-    bashio::log.error "${status} ${response}"
+    bashio::log.error "Could not update HA Sensor. ${status} ${response}"
     exit ${status}
 fi
