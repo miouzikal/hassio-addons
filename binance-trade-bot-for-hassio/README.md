@@ -70,4 +70,4 @@ If needed, you can set the buy and sell types in the add-on configuration using 
 [armhf-shield]: https://img.shields.io/badge/armhf-yes-green.svg
 [armv7-shield]: https://img.shields.io/badge/armv7-yes-green.svg
 [i386-shield]: https://img.shields.io/badge/i386-yes-green.svg
-[version]: https://img.shields.io/badge/version-v0.1.7-blue.svg
+[version]: https://img.shields.io/badge/version-v0.1.8-blue.svg
