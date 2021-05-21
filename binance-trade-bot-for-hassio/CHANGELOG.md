@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.8
+
+- Add scripts to parse database
+
 ## 0.1.7
 
 - Fix logging
