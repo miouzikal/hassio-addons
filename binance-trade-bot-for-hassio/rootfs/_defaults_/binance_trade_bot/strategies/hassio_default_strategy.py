@@ -79,6 +79,11 @@ class Strategy(Strategy):
                     total_coin_in_btc += asset_value_in_btc
                     asset_entry['asset_value_in_btc'] = round(asset_value_in_btc, 6)
 
+                    # Allow graphing of increase over time of the same coin
+                    if asset['asset'] == attributes['current_coin']:
+                        attributes[f"{attributes['current_coin']}_coin_balance"] = float(asset['free'])
+                        attributes[f"{attributes['current_coin']}_coin_value_btc"] = round(asset_value_in_btc, 6)
+
                     if self.fetch_eur_balance:
                         # Get total amount in € based on the BTC amount
                         asset_value_in_eur, btc_price_in_eur = self.get_btc_amount_in_fiat(btc=asset_value_in_btc, fiat_symbol="EUR")
