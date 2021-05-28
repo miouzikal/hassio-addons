@@ -1,106 +1,177 @@
-import random
-import sys
-import time
-import os
 import json
+import os
+import sys
 from datetime import datetime, timezone
 
-from binance_trade_bot.auto_trader import AutoTrader
 from binance_trade_bot.models import Trade
+from binance_trade_bot.strategies.default_strategy import Strategy
 
-# from sqlalchemy.orm import Session
 
-class Strategy(AutoTrader):
+class Strategy(Strategy):
     def initialize(self):
         super().initialize()
-        self.initialize_current_coin()
+        self.scount_loop_count = 0
+        self.ha_update_loop_count = 0
+        self.fetch_eur_balance = True
+        self.fetch_usd_balance = False
 
     def scout(self):
         """
         Scout for potential jumps from the current coin to another coin
         """
-        all_tickers = self.manager.get_all_market_tickers()
+        block_print()
+        super().scout()
+        enable_print()
 
-        current_coin = self.db.get_current_coin()
+        try:
+            current_coin = self.db.get_current_coin()
+            self.log_scout(current_coin)
 
-        current_coin_price = all_tickers.get_price(current_coin + self.config.BRIDGE)
-
-        if current_coin_price is None:
-            self.logger.info("Skipping scouting... current coin {} not found".format(current_coin + self.config.BRIDGE))
-            return
-
-        # Update Home Assistant sensor
-        total_balance_usdt = 0
-        attributes = {}
-        attributes['bridge'] = self.config.BRIDGE_SYMBOL
-        attributes['current_coin'] = str(current_coin).replace("<", "").replace(">", "")
-        attributes['wallet'] = {}
-
-        for asset in self.manager.binance_client.get_account()["balances"]:
-          if float(asset['free']) > 0:
-            if asset['asset'] not in ['BUSD', 'USDT']:
-              current_price = all_tickers.get_price(asset['asset'] + self.config.BRIDGE_SYMBOL)
-              if isinstance(current_price, float):
-                asset_value = float(asset['free']) * float(current_price)
-              else:
-                self.logger.warning("No price found for current asset={}".format(asset['asset']))
-                asset_value = 0
-            else:
-              asset_value = float(asset['free'])
-
-            total_balance_usdt += asset_value
-
-            if asset_value > 1:
-              attributes['wallet'][asset['asset']] = {'balance': float(asset['free']), 'current_price': float(current_price), 'asset_value': float(asset_value)}
-
-        with self.db.db_session() as session:
-          try:
-            trade = session.query(Trade).order_by(Trade.datetime.desc()).limit(1).one().info()
-            if trade:
-                attributes['last_transaction_attempt'] = datetime.strptime(trade['datetime'], "%Y-%m-%dT%H:%M:%S.%f").replace(tzinfo=timezone.utc).astimezone(tz=None).strftime("%d/%m/%Y %H:%M:%S")
-          except: 
-            pass
-        
-        attributes['last_sensor_update'] = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-
-        # Update HA Sensor
-        data = {'state': round(total_balance_usdt, 2), 'attributes': attributes}
-        os.system("/scripts/update_ha_sensor.sh '" + str(json.dumps(data)) + "'")
-
-        self._jump_to_best_coin(current_coin, current_coin_price, all_tickers)
-        self.bridge_scout()
+            # Update HA sensor AFTER doing the bot functions so that any breakage in HA won't affect trading.
+            # E.g. HA API changes, etc.
+            self.update_ha_sensor(current_coin)
+        except Exception as ex:  # pylint: disable=broad-except
+            # This this message short so it will be sent to the noticiation channel (Telegram)
+            self.logger.error("Unexpected Error Updating HA sensor. Check the logs for the exception message.")
+            # Not log the broader exception:
+            self.logger.error("Unexpected Error Updating HA sensor. {ex}", notification=False)
 
     def bridge_scout(self):
-        current_coin = self.db.get_current_coin()
-        if self.manager.get_currency_balance(current_coin.symbol) > self.manager.get_min_notional(
-            current_coin.symbol, self.config.BRIDGE.symbol
-        ):
-            # Only scout if we don't have enough of the current coin
-            return
-        new_coin = super().bridge_scout()
-        if new_coin is not None:
-            self.db.set_current_coin(new_coin)
+        super().bridge_scout()
 
-    def initialize_current_coin(self):
+    def log_scout(self, current_coin, wait_iterations=600, notification=False):
         """
-        Decide what is the current coin, and set it up in the DB.
+        Log each scout every X times. This will prevent logs getting spammed.
         """
-        if self.db.get_current_coin() is None:
-            current_coin_symbol = self.config.CURRENT_COIN_SYMBOL
-            if not current_coin_symbol:
-                current_coin_symbol = random.choice(self.config.SUPPORTED_COIN_LIST)
 
-            self.logger.info(f"Setting initial coin to {current_coin_symbol}")
+        if self.scount_loop_count in [0, wait_iterations]:
+            # Log the current coin+Bridge, so users can see *some* activity and not think the bot has
+            # stopped. Don't send to notification service
+            self.logger.info(f"Scouting... current: {current_coin + self.config.BRIDGE}", notification=notification)
+            self.scount_loop_count = 0
 
-            if current_coin_symbol not in self.config.SUPPORTED_COIN_LIST:
-                sys.exit("***\nERROR!\nSince there is no backup file, a proper coin name must be provided at init\n***")
-            self.db.set_current_coin(current_coin_symbol)
+        self.scount_loop_count += 1
 
-            # if we don't have a configuration, we selected a coin at random... Buy it so we can start trading.
-            if self.config.CURRENT_COIN_SYMBOL == "":
-                current_coin = self.db.get_current_coin()
-                self.logger.info(f"Purchasing {current_coin} to begin trading")
-                all_tickers = self.manager.get_all_market_tickers()
-                self.manager.buy_alt(current_coin, self.config.BRIDGE, all_tickers)
-                self.logger.info("Ready to start trading")
+    def update_ha_sensor(self, current_coin, wait_iterations=30):
+        """
+        Update the Home Assistant sensor with new data every 30 seconds.
+        """
+        if self.ha_update_loop_count == wait_iterations:
+            self.ha_update_loop_count = 0
+            total_balance_usdt = 0
+            total_coin_in_btc = 0
+            total_balance_eur = 0
+            attributes = {}
+            attributes['bridge'] = self.config.BRIDGE_SYMBOL
+            attributes['current_coin'] = str(current_coin).replace("<", "").replace(">", "")
+            attributes['wallet'] = {}
 
+            for asset in self.manager.binance_client.get_account()["balances"]:
+                if float(asset['free']) > 0:
+                    asset_value_usd = 0
+                    asset_value_in_eur = 0
+                    asset_entry = {'balance': float(asset['free'])}
+
+                    # Get total amount in terms of BTC amount
+                    asset_value_in_btc = self.get_btc_amount(coin_symbol=asset['asset'], coin_total=asset['free'])
+                    total_coin_in_btc += asset_value_in_btc
+                    asset_entry['asset_value_in_btc'] = round(asset_value_in_btc, 6)
+
+                    # Allow graphing of increase over time of the same coin
+                    if asset['asset'] == attributes['current_coin']:
+                        attributes[f"{attributes['current_coin']}_coin_balance"] = float(asset['free'])
+                        attributes[f"{attributes['current_coin']}_coin_value_btc"] = round(asset_value_in_btc, 6)
+
+                    if self.fetch_eur_balance:
+                        # Get total amount in € based on the BTC amount
+                        asset_value_in_eur, btc_price_in_eur = self.get_btc_amount_in_fiat(btc=asset_value_in_btc,
+                                                                                           fiat_symbol="EUR")
+                        total_balance_eur += asset_value_in_eur
+                        asset_entry['asset_value_in_eur'] = round(asset_value_in_eur, 2)
+                        attributes['1_BTC_Price_In_€'] = round(btc_price_in_eur, 2)
+
+                    if self.fetch_usd_balance:
+                        # Get total amount in $ based on the BTC amount
+                        asset_value_in_usd, btc_price_in_usd = self.get_btc_amount_in_fiat(btc=asset_value_in_btc)
+                        total_balance_usdt += asset_value_in_usd
+                        asset_entry['asset_value_us_dollar'] = round(asset_value_in_usd, 2)
+                        attributes['1_BTC_Price_In_$'] = round(btc_price_in_usd, 2)
+
+                    if asset_value_usd > 1 or asset_value_in_eur > 1:
+                        # Only add this coin if it has value over a euro or dollar
+                        attributes['wallet'][asset['asset']] = asset_entry
+
+            with self.db.db_session() as session:
+                try:
+                    trade = session.query(Trade).order_by(Trade.datetime.desc()).limit(1).one().info()
+                    if trade:
+                        attributes['last_transaction_attempt'] = datetime.strptime(trade['datetime'],
+                                                                                   "%Y-%m-%dT%H:%M:%S.%f").replace(
+                            tzinfo=timezone.utc).astimezone(tz=None).strftime("%d/%m/%Y %H:%M:%S")
+                except:
+                    pass
+
+            if self.fetch_usd_balance:
+                attributes['total_balance_usdt'] = round(total_balance_usdt, 0)
+            if self.fetch_eur_balance:
+                attributes['total_balance_eur'] = round(total_balance_eur, 0)
+
+            attributes['last_sensor_update'] = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+            attributes['sensor_update_interval'] = wait_iterations
+            attributes['unit_of_measurement'] = 'BTC'
+            attributes['icon'] = 'mdi:bitcoin'
+            data = {
+                'state': round(total_coin_in_btc, 6),
+                'attributes': attributes
+            }
+            os.system("/scripts/update_ha_sensor.sh '" + str(json.dumps(data)) + "'")
+
+        self.ha_update_loop_count += 1
+
+    def get_btc_amount(self, coin_symbol, coin_total):
+        """
+        Get amount of a coin in BTC terms
+        """
+        btc_coins = 0
+
+        if coin_symbol == 'BTC':
+            # no need to convert.
+            btc_coins = float(coin_total)
+        elif coin_symbol in ['USDT', 'EUR', 'BUSD']:
+            btc_coins = float(coin_total) / float(self.manager.get_ticker_price("BTC" + coin_symbol))
+        else:
+            # Only check value if not in bridge coin.
+            try:
+                current_coin_price_in_btc = self.manager.get_ticker_price(coin_symbol + "BTC")
+                btc_coins = float(current_coin_price_in_btc) * float(coin_total)
+            except:
+                # Pretty unlikely since all coins trade with BTC
+                self.logger.warning(
+                    "No price found for current coin + BTC={}".format(coin_symbol + "BTC"),
+                    notification=False)
+                pass
+
+        return btc_coins
+
+    def get_btc_amount_in_fiat(self, btc, fiat_symbol="USDT"):
+        """
+        Convert BTC to Fiat value
+
+        return fiat_value, btc_price_in_fiat
+        """
+        btc_price_in_fiat = self.manager.get_ticker_price(f"BTC{fiat_symbol}")
+        return float(btc_price_in_fiat) * float(btc), btc_price_in_fiat
+
+
+def block_print():
+    """
+    Block print command working.
+    """
+    sys.stdout = open(os.devnull, 'w')
+
+
+def enable_print():
+    """
+    Restore print command working.
+    """
+    sys.stdout = sys.__stdout__
