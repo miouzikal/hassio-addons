@@ -13,7 +13,7 @@ class Strategy(Strategy):
         self.scount_loop_count = 0
         self.ha_update_loop_count = 0
         self.fetch_eur_balance = True
-        self.fetch_usd_balance = False
+        self.fetch_usd_balance = True
 
     def scout(self):
         """
