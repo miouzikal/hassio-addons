@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.9
+
+- Remove idkravitz specific strategies. Fold changes into the hassio_default strategy.
+- Fix for getting BTC value
+- Remove print statement
+- Report also price per BTC in Fiat to HA sensor
+
 ## 0.1.8
 
 - Add scripts to parse database

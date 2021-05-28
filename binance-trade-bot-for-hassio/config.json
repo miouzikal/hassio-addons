@@ -1,6 +1,6 @@
 {
   "name": "binance-trade-bot-for-hassio",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "slug": "binance-trade-bot-for-hassio",
   "description": "Automated cryptocurrency trading bot",
   "url": "https://github.com/miouzikal/hassio-addons/tree/master/binance-trade-bot-for-hassio",
