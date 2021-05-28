@@ -1,8 +1,6 @@
 import json
-import logging
 import os
 import sys
-import traceback
 from datetime import datetime, timezone
 
 from binance_trade_bot.models import Trade
@@ -32,11 +30,11 @@ class Strategy(Strategy):
             # Update HA sensor AFTER doing the bot functions so that any breakage in HA won't affect trading.
             # E.g. HA API changes, etc.
             self.update_ha_sensor(current_coin)
-        except:  # pylint: disable=broad-except
-            self.logger.error("Unexpected Error Updating HA sensor.")
-            # Only log last line as that will fit in Telegram notification perhaps
-            error_last_line = traceback.format_exc().split('\n')[-1]
-            self.logger.error(error_last_line)
+        except Exception as ex:  # pylint: disable=broad-except
+            # This this message short so it will be sent to the noticiation channel (Telegram)
+            self.logger.error("Unexpected Error Updating HA sensor. Check the logs for the exception message.")
+            # Not log the broader exception:
+            self.logger.error("Unexpected Error Updating HA sensor. {ex}", notification=False)
 
     def bridge_scout(self):
         super().bridge_scout()
@@ -86,7 +84,8 @@ class Strategy(Strategy):
 
                     if self.fetch_eur_balance:
                         # Get total amount in € based on the BTC amount
-                        asset_value_in_eur, btc_price_in_eur = self.get_btc_amount_in_fiat(btc=asset_value_in_btc, fiat_symbol="EUR")
+                        asset_value_in_eur, btc_price_in_eur = self.get_btc_amount_in_fiat(btc=asset_value_in_btc,
+                                                                                           fiat_symbol="EUR")
                         total_balance_eur += asset_value_in_eur
                         asset_entry['asset_value_in_eur'] = round(asset_value_in_eur, 2)
                         attributes['1_BTC_Price_In_€'] = round(btc_price_in_eur, 2)
@@ -137,7 +136,7 @@ class Strategy(Strategy):
 
         if coin_symbol == 'BTC':
             # no need to convert.
-            btc_coins = coin_total
+            btc_coins = float(coin_total)
         elif coin_symbol in ['USDT', 'EUR', 'BUSD']:
             btc_coins = float(coin_total) / float(self.manager.get_ticker_price("BTC" + coin_symbol))
         else:
