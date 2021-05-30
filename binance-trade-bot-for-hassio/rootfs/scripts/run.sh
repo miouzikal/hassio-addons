@@ -25,18 +25,14 @@ else
     if [[ $BOT_REPO != $(cat /addons/$ADDON_NAME/$CONTAINER_ALREADY_STARTED | cut -d '#' -f 1) ]] || [[ $REPO_BRANCH != $(cat /addons/$ADDON_NAME/$CONTAINER_ALREADY_STARTED | cut -d '#' -f 2) ]]; then
       echo $BOT_REPO'#'$REPO_BRANCH > /addons/$ADDON_NAME/$CONTAINER_ALREADY_STARTED
       /scripts/update_binance_trade_bot.sh
-      /scripts/init.sh
-      /scripts/override.sh
-      cd /addons/$ADDON_NAME/app/
-      bashio::log.info "Starting binance-trade-bot ..."
-      python3 -m binance_trade_bot
     else
       /scripts/install_binance_trade_bot.sh
-      /scripts/init.sh
-      /scripts/override.sh
-      cd /addons/$ADDON_NAME/app/
-      bashio::log.info "Starting binance-trade-bot ..."
-      python3 -m binance_trade_bot
     fi
+    /scripts/init.sh
+    /scripts/override.sh
+    cd /addons/$ADDON_NAME/btb_manager_telegram/
+    bashio::log.info "Starting binance-trade-bot via btb_manager_telegram..."
+    python3 -m btb_manager_telegram -p /addons/$ADDON_NAME/app/
+
   fi
 fi

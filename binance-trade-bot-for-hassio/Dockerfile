@@ -12,9 +12,12 @@ RUN curl -Lso /usr/bin/ha "https://github.com/home-assistant/cli/releases/downlo
 # Build requirements
 RUN apk update && apk upgrade && apk add git python3 py3-pip gcc musl-dev python3-dev libffi-dev openssl-dev cargo build-base vim
 
-# Install knowned requirements
+# Install known requirements
 RUN git clone -b master https://github.com/idkravitz/binance-trade-bot.git /tmp/bot/ && \
     pip install -r /tmp/bot/requirements.txt
+
+RUN git clone https://github.com/lorcalhost/BTB-manager-telegram.git /tmp/bpbm/ && \
+    pip install -r /tmp/bpbm/requirements.txt
 
 # Copy root filesystem
 COPY rootfs /
