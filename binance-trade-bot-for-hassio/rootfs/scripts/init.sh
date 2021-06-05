@@ -26,6 +26,10 @@ if [[ $(bashio::config 'SELL_ORDER_TYPE') != null ]]; then
   echo sell_order_type = $(bashio::config 'SELL_ORDER_TYPE') >> /addons/$ADDON_NAME/app/user.cfg
 fi
 
+if [[ $(bashio::config 'TRADE_FEE') != null ]]; then
+  echo trade_fee = $(bashio::config 'TRADE_FEE') >> /addons/$ADDON_NAME/app/user.cfg
+fi
+
 if [[ $(bashio::config 'BUY_MAX_PRICE_CHANGE') != null ]]; then
   echo buy_max_price_change = $(bashio::config 'BUY_MAX_PRICE_CHANGE') >> /addons/$ADDON_NAME/app/user.cfg
 fi
