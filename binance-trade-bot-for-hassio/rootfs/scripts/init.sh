@@ -26,6 +26,22 @@ if [[ $(bashio::config 'SELL_ORDER_TYPE') != null ]]; then
   echo sell_order_type = $(bashio::config 'SELL_ORDER_TYPE') >> /addons/$ADDON_NAME/app/user.cfg
 fi
 
+if [[ $(bashio::config 'BUY_MAX_PRICE_CHANGE') != null ]]; then
+  echo buy_max_price_change = $(bashio::config 'BUY_MAX_PRICE_CHANGE') >> /addons/$ADDON_NAME/app/user.cfg
+fi
+
+if [[ $(bashio::config 'SELL_MAX_PRICE_CHANGE') != null ]]; then
+  echo sell_max_price_change = $(bashio::config 'SELL_MAX_PRICE_CHANGE') >> /addons/$ADDON_NAME/app/user.cfg
+fi
+
+if [[ $(bashio::config 'PRICE_TYPE') != null ]]; then
+  echo price_type = $(bashio::config 'PRICE_TYPE') >> /addons/$ADDON_NAME/app/user.cfg
+fi
+
+if [[ $(bashio::config 'MAX_IDLE_HOURS') != null ]]; then
+  echo max_idle_hours = $(bashio::config 'MAX_IDLE_HOURS') >> /addons/$ADDON_NAME/app/user.cfg
+fi
+
 bashio::log.info "Updating 'supported_coin_list' ..."
 cat > /addons/$ADDON_NAME/app/supported_coin_list << EOF
 $(bashio::config 'SUPPORTED_COIN_LIST')
