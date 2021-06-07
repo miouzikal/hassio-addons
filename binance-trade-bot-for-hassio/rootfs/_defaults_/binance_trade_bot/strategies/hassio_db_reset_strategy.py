@@ -1,7 +1,7 @@
 import json
 import os
 import sys
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 from binance_trade_bot.models import Trade
 from binance_trade_bot.strategies.db_reset_strategy import Strategy
@@ -105,9 +105,9 @@ class Strategy(Strategy):
                 try:
                     trade = session.query(Trade).order_by(Trade.datetime.desc()).limit(1).one().info()
                     if trade:
-                        attributes['last_transaction_attempt'] = datetime.strptime(trade['datetime'],
-                                                                                   "%Y-%m-%dT%H:%M:%S.%f").replace(
-                            tzinfo=timezone.utc).astimezone(tz=None).strftime("%d/%m/%Y %H:%M:%S")
+                        last_trasaction_date = datetime.strptime(trade['datetime'], "%Y-%m-%dT%H:%M:%S.%f")
+                        attributes['last_transaction_attempt'] = last_trasaction_date.replace(tzinfo=timezone.utc).astimezone(tz=None).strftime("%d/%m/%Y %H:%M:%S")
+                        attributes['next_ratio_reset'] = (last_trasaction_date + timedelta(hours=float(self.config.MAX_IDLE_HOURS))).strftime("%d/%m/%Y %H:%M:%S")
                 except:
                     pass
 
